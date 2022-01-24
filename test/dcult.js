@@ -23,6 +23,9 @@ describe("dcult contract", function () {
     cultToken = await upgrades.deployProxy(Token, [owner.address, 100000]);
     await cultToken.deployed();
     await cultToken.setTreasuryAddress(owner.address);
+    await cultToken.setWhitelistAddress(addr1.address, true);
+    await cultToken.setWhitelistAddress(addr2.address, true);
+    await cultToken.setWhitelistAddress(addrs[0].address, true);
     await cultToken.setTax(0);
     dCultToken = await upgrades.deployProxy(stakeToken, [
       cultToken.address,

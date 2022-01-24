@@ -200,3 +200,8 @@ interface GovernorAlpha {
     /// @notice The total number of proposals
     function proposalCount() external returns (uint);
 }
+
+interface Chef {
+    /// @notice Top staker
+    function checkHighestStaker(uint256 _pid, address user) external returns (bool);
+}
