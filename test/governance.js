@@ -23,12 +23,14 @@ let userAddress2;
 const GovernorBravoDelegate = artifacts.require("GovernorBravoDelegate");
 const CULTToken = artifacts.require("Cult");
 const Timelock = artifacts.require("Timelock");
+const dCultToken = artifacts.require("Dcult");
 
 describe("GovernorBravo_Propose", function () {
   let trivialProposal, targets, values, signatures, callDatas, delay;
   let proposalBlock;
   //   const [ ownerAddress, userAddress1, userAddress2] = accounts;
   beforeEach(async function () {
+    const startBlock = await time.latestBlock();
     accounts = await web3.eth.getAccounts();
     [ownerAddress, userAddress1, userAddress2] = accounts;
     delay = new BN(2 * 24 * 60 * 60 * 2);
@@ -39,6 +41,42 @@ describe("GovernorBravo_Propose", function () {
       gas: 8000000,
     });
     this.timelock = await Timelock.new(ownerAddress, delay, {
+      from: ownerAddress,
+      gas: 8000000,
+    });
+    this.dCultToken = await dCultToken.new({
+      from: ownerAddress,
+      gas: 8000000,
+    });
+    await this.dCultToken.initialize(
+      this.CULT.address,
+      ownerAddress,
+      startBlock,
+      2,
+      {
+        from: ownerAddress,
+        gas: 8000000,
+      }
+    );
+    await this.CULT.setWhitelistAddress(ownerAddress, true, {
+      from: ownerAddress,
+    });
+    await this.CULT.setWhitelistAddress(userAddress1, true, {
+      from: ownerAddress,
+    });
+    await this.CULT.setWhitelistAddress(userAddress2, true, {
+      from: ownerAddress,
+    });
+    await this.dCultToken.add(100, this.CULT.address, true, {
+      from: ownerAddress,
+      gas: 8000000,
+    });
+
+    await this.CULT.approve(this.dCultToken.address, 10000, {
+      from: ownerAddress,
+      gas: 8000000,
+    });
+    await this.dCultToken.deposit(0, 100, {
       from: ownerAddress,
       gas: 8000000,
     });
@@ -59,6 +97,7 @@ describe("GovernorBravo_Propose", function () {
       1,
       "60000000000000000000000",
       userAddress2,
+      this.dCultToken.address,
       { from: ownerAddress, gas: 8000000 }
     );
     // await this.CULT.mint(ownerAddress, "1000000000000000000000000", {from: ownerAddress, gas: 8000000})
@@ -84,6 +123,22 @@ describe("GovernorBravo_Propose", function () {
     proposalBlock = await time.latestBlock();
     proposalId = await this.gov.latestProposalIds(ownerAddress);
     trivialProposal = await this.gov.proposals(proposalId);
+  });
+
+  describe("Non top staker tries to create proposal", function () {
+    it("", async function () {
+      await expectRevert(
+        this.gov.propose(
+          targets.concat(ownerAddress),
+          values,
+          signatures,
+          callDatas,
+          "do nothing",
+          { from: userAddress1, gas: 8000000 }
+        ),
+        "GovernorBravo::propose: only top staker"
+      );
+    });
   });
 
   describe("simple initialization", function () {
@@ -141,7 +196,7 @@ describe("GovernorBravo_Propose", function () {
             "do nothing",
             { from: userAddress1, gas: 8000000 }
           ),
-          "GovernorBravo::propose: proposer votes below proposal threshold"
+          "GovernorBravo::propose: only top staker"
         );
 
         await expectRevert(
@@ -249,7 +304,7 @@ describe("GovernorBravo_Propose", function () {
       await this.gov.castVote(1, 1, { from: ownerAddress });
       const prop = await this.gov.proposals(1);
       expect(prop.forVotes).to.be.bignumber.equal(
-        new BN("1000000000000000000000000")
+        new BN("999999999999999999999900")
       );
     });
 
@@ -258,7 +313,7 @@ describe("GovernorBravo_Propose", function () {
       await this.gov.castVote(1, 0, { from: ownerAddress });
       const prop = await this.gov.proposals(1);
       expect(prop.againstVotes).to.be.bignumber.equal(
-        new BN("1000000000000000000000000")
+        new BN("999999999999999999999900")
       );
     });
 

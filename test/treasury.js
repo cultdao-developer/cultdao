@@ -2,7 +2,7 @@ const { expect } = require("chai");
 const { upgrades } = require("hardhat");
 const { time } = require("../utilities");
 
-describe("dcult contract", function () {
+describe("Treasury contract", function () {
   let Token;
   let governanceToken;
   let cultToken;
@@ -45,6 +45,7 @@ describe("dcult contract", function () {
       1,
       "60000000000000000000000",
       treasury.address,
+      addr2.address,
     ]);
     await governance.deployed();
     await cultToken.setTreasuryAddress(treasury.address);

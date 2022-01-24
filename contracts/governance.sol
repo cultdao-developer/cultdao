@@ -18,6 +18,9 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
     /// @notice Treasury contract address
     address public treasury;
 
+    /// @notice chef contract address
+    address public chef;
+
     /// @notice The name of this contract
     string public constant name = "Cult Governor Bravo";
 
@@ -59,7 +62,7 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
       * @param votingDelay_ The initial voting delay
       * @param proposalThreshold_ The initial proposal threshold
       */
-    function initialize(address timelock_, address cult_, uint votingPeriod_, uint votingDelay_, uint proposalThreshold_, address treasury_) public initializer{
+    function initialize(address timelock_, address cult_, uint votingPeriod_, uint votingDelay_, uint proposalThreshold_, address treasury_, address chef_) public initializer{
         require(address(timelock) == address(0), "GovernorBravo::initialize: can only initialize once");
         require(timelock_ != address(0), "GovernorBravo::initialize: invalid timelock address");
         require(cult_ != address(0), "GovernorBravo::initialize: invalid cult address");
@@ -74,6 +77,7 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
         proposalThreshold = proposalThreshold_;
         admin = timelock_;
         treasury = treasury_;
+        chef = chef_;
     }
 
     /**
@@ -89,6 +93,7 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
         // Reject proposals before initiating as Governor
         // require(initialProposalId != 0, "GovernorBravo::propose: Governor Bravo not active");
         // Allow addresses above proposal threshold and whitelisted addresses to propose
+        require(Chef(chef).checkHighestStaker(0,msg.sender),"GovernorBravo::propose: only top staker");
         require(cult.getPriorVotes(msg.sender, sub256(block.number, 1)) > proposalThreshold || isWhitelisted(msg.sender), "GovernorBravo::propose: proposer votes below proposal threshold");
         require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "GovernorBravo::propose: proposal function information arity mismatch");
         require(targets.length != 0, "GovernorBravo::propose: must provide actions");

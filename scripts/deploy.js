@@ -12,18 +12,29 @@ async function main() {
   );
   const treasuryContract = await ethers.getContractFactory("Treasury");
   const timeLockContract = await ethers.getContractFactory("Timelock");
+  const dCultContract = await ethers.getContractFactory("Dcult");
 
   const cultToken = await upgrades.deployProxy(Token, [
     deployer.address,
     "100000000000000000000000",
   ]);
   await cultToken.deployed();
-
   console.log("Cult Token ", cultToken.address);
+
+  const dCultToken = await upgrades.deployProxy(dCultContract, [
+    cultToken.address,
+    deployer.address,
+    100,
+    2,
+  ]);
+
+  await dCultToken.deployed();
+
+  console.log("dCult Token ", dCultToken.address);
 
   const treasury = await upgrades.deployProxy(treasuryContract, [
     cultToken.address,
-    RouterAddress.address,
+    RouterAddress,
   ]);
   await treasury.deployed();
   console.log("Treasury Token ", treasury.address);
@@ -36,12 +47,13 @@ async function main() {
   console.log("Timelock Token ", timelock.address);
 
   const governance = await upgrades.deployProxy(governanceToken, [
-    timelock.address,
+    deployer.address,
     cultToken.address,
     17280,
     1,
     "60000000000000000000000",
     treasury.address,
+    dCultToken.address,
   ]);
   console.log("Governance Token ", governance.address);
 }
