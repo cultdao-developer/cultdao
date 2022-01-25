@@ -36,7 +36,7 @@ describe("GovernorBravo_Propose", function () {
     delay = new BN(2 * 24 * 60 * 60 * 2);
 
     this.CULT = await CULTToken.new({ from: ownerAddress, gas: 8000000 });
-    this.CULT.initialize(ownerAddress, "1000000000000000000000000", {
+    this.CULT.initialize(ownerAddress, "6666666666666666666666666666666", {
       from: ownerAddress,
       gas: 8000000,
     });
@@ -304,7 +304,7 @@ describe("GovernorBravo_Propose", function () {
       await this.gov.castVote(1, 1, { from: ownerAddress });
       const prop = await this.gov.proposals(1);
       expect(prop.forVotes).to.be.bignumber.equal(
-        new BN("999999999999999999999900")
+        new BN("6666666666666666666666666666566")
       );
     });
 
@@ -313,7 +313,7 @@ describe("GovernorBravo_Propose", function () {
       await this.gov.castVote(1, 0, { from: ownerAddress });
       const prop = await this.gov.proposals(1);
       expect(prop.againstVotes).to.be.bignumber.equal(
-        new BN("999999999999999999999900")
+        new BN("6666666666666666666666666666566")
       );
     });
 
