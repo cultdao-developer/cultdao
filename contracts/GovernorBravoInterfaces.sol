@@ -158,7 +158,7 @@ contract GovernorBravoDelegateStorageV1 is GovernorBravoDelegatorStorage {
         uint8 support;
 
         // The number of votes the voter had, which were cast
-        uint96 votes;
+        uint256 votes;
     }
 
     /// @notice Possible states that a proposal may be in
@@ -193,7 +193,7 @@ interface TimelockInterface {
 }
 
 interface CultInterface {
-    function getPriorVotes(address account, uint blockNumber) external view returns (uint96);
+    function getPastVotes(address account, uint blockNumber) external view returns (uint256);
 }
 
 interface GovernorAlpha {

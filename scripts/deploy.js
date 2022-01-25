@@ -16,7 +16,7 @@ async function main() {
 
   const cultToken = await upgrades.deployProxy(Token, [
     deployer.address,
-    "100000000000000000000000",
+    "6666666666666666666666666666666",
   ]);
   await cultToken.deployed();
   console.log("Cult Token ", cultToken.address);
@@ -49,7 +49,7 @@ async function main() {
   const governance = await upgrades.deployProxy(governanceToken, [
     deployer.address,
     cultToken.address,
-    17280,
+    120,
     1,
     "60000000000000000000000",
     treasury.address,
