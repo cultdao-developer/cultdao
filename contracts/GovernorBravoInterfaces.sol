@@ -55,7 +55,7 @@ contract GovernorBravoEvents {
     event InvesteeFunded(address investee, uint256 id);
 
     /// @notice Alpha contract initiated. For initiating already deployed governance alpha
-    event GovernanceInitiates(address governanceAddress);
+    event GovernanceInitiated(address governanceAddress);
 }
 
 contract GovernorBravoDelegatorStorage {

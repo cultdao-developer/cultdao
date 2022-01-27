@@ -55,7 +55,7 @@ contract Timelock is Initializable,UUPSUpgradeable{
     }
 
     function setPendingAdmin(address pendingAdmin_) public {  
-        require(pendingAdmin_ != address(0), "Timelock::setPendingAdmin: invalid address");             
+        require(pendingAdmin_ != address(0), "Timelock::setPendingAdmin: Invalid address");             
         if (adminInitialized) {
             require(msg.sender == address(this), "Timelock::setPendingAdmin: Call must come from Timelock.");
         } else {

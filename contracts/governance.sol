@@ -334,7 +334,7 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
      */
     function _setInvesteeDetails(address _investee) external {
         require(msg.sender == admin, "GovernorBravo::_setInvesteeDetails: admin only");
-        require(_investee != address(0), "GovernorBravo::_setInvesteeDetails: Zero address");
+        require(_investee != address(0), "GovernorBravo::_setInvesteeDetails: zero address");
         investeeDetails[nextInvestee] = _investee;
         nextInvestee =add256(nextInvestee,1);
 
@@ -418,7 +418,7 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
         proposalCount = GovernorAlpha(governorAlpha).proposalCount();
         initialProposalId = proposalCount;
         timelock.acceptAdmin();
-        emit GovernanceInitiates(governorAlpha);
+        emit GovernanceInitiated(governorAlpha);
     }
 
     /**
