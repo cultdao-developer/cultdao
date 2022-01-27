@@ -67,7 +67,6 @@ contract Treasury is
     address public dao;
     address public router;
     uint256 public totalETH;
-    uint256 public burnETH;
 
     address[] private path;
     function initialize(        
