@@ -1,4 +1,5 @@
-pragma solidity ^0.8.2;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.2;
 pragma experimental ABIEncoderV2;
 
 
@@ -52,6 +53,9 @@ contract GovernorBravoEvents {
 
     /// @notice Emitted when the Investee is funded
     event InvesteeFunded(address investee, uint256 id);
+
+    /// @notice Alpha contract initiated. For initiating already deployed governance alpha
+    event GovernanceInitiates(address governanceAddress);
 }
 
 contract GovernorBravoDelegatorStorage {

@@ -74,6 +74,8 @@ contract Treasury is
         address _cult,
         address _router
         ) public initializer {
+        require(_cult != address(0),"initialize: Invalid address");
+        require(_router != address(0),"initialize: Invalid address");
         cult = _cult;
         router = _router;
         OwnableUpgradeable.__Ownable_init();
@@ -90,6 +92,7 @@ contract Treasury is
     }
 
     function setDAOAddress(address _dao) external onlyOwner{
+        require(_dao != address(0),"setDAOAddress: Invalid address");
         dao = _dao;
     }
 
