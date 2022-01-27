@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.2;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -26,6 +27,7 @@ contract Timelock is Initializable,UUPSUpgradeable{
     mapping (bytes32 => bool) public queuedTransactions;
 
     function initialize(address admin_, uint delay_) public initializer{
+        require(admin_ != address(0), "Timelock::constructor: Invalid address.");
         require(delay_ >= MINIMUM_DELAY, "Timelock::constructor: Delay must exceed minimum delay.");
         require(delay_ <= MAXIMUM_DELAY, "Timelock::setDelay: Delay must not exceed maximum delay.");
 
@@ -52,7 +54,8 @@ contract Timelock is Initializable,UUPSUpgradeable{
         emit NewAdmin(admin);
     }
 
-    function setPendingAdmin(address pendingAdmin_) public {        
+    function setPendingAdmin(address pendingAdmin_) public {  
+        require(pendingAdmin_ != address(0), "Timelock::setPendingAdmin: Invalid address");             
         if (adminInitialized) {
             require(msg.sender == address(this), "Timelock::setPendingAdmin: Call must come from Timelock.");
         } else {
@@ -85,6 +88,7 @@ contract Timelock is Initializable,UUPSUpgradeable{
     }
 
     function executeTransaction(address target, uint value, string memory signature, bytes memory data, uint eta) public payable returns (bytes memory) {
+        require(target != address(0), "Timelock::executeTransaction: Invalid address");
         require(msg.sender == admin, "Timelock::executeTransaction: Call must come from admin.");
 
         bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta));

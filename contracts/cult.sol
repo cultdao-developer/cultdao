@@ -20,6 +20,10 @@ contract Cult is Initializable,UUPSUpgradeable,ERC20Upgradeable, ERC20PermitUpgr
     uint256 public tax;
     mapping(address => bool) public whitelistedAddress;
 
+    event TreasuryAddressUpdated(address newTreasury);
+    event WhitelistAddressUpdated(address whitelistAccount, bool value);
+    event TaxUpdated(uint256 taxAmount);
+
     function initialize(        
         address initialHolder,
         uint256 initialSupply
@@ -69,15 +73,18 @@ contract Cult is Initializable,UUPSUpgradeable,ERC20Upgradeable, ERC20PermitUpgr
         require(_treasury != address(0), "setTreasuryAddress: Zero address");
         treasury = _treasury;
         whitelistedAddress[_treasury] = true;
+        emit TreasuryAddressUpdated(_treasury);
     }
 
     function setWhitelistAddress(address _whitelist, bool _status) external onlyOwner{
         require(_whitelist != address(0), "setWhitelistAddress: Zero address");
         whitelistedAddress[_whitelist] = _status;
+        emit WhitelistAddressUpdated(_whitelist, _status);
     }
 
     function setTax(uint256 _tax) external onlyOwner{
         tax = _tax;
+        emit TaxUpdated(tax);
     }
 
     function _maxSupply() internal view virtual override(ERC20VotesCompUpgradeable,ERC20VotesUpgradeable) returns (uint224) {

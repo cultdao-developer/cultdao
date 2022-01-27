@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.2;
 pragma experimental ABIEncoderV2;
 
@@ -55,7 +56,7 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
     bytes32 public constant BALLOT_TYPEHASH = keccak256("Ballot(uint256 proposalId,uint8 support)");
 
     /**
-      * @notice Used to initialize the contract during delegator contructor
+      * @notice Used to initialize the contract during delegator constructor
       * @param timelock_ The address of the Timelock
       * @param cult_ The address of the CULT token
       * @param votingPeriod_ The initial voting period
@@ -69,6 +70,8 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
         require(votingPeriod_ >= MIN_VOTING_PERIOD && votingPeriod_ <= MAX_VOTING_PERIOD, "GovernorBravo::initialize: invalid voting period");
         require(votingDelay_ >= MIN_VOTING_DELAY && votingDelay_ <= MAX_VOTING_DELAY, "GovernorBravo::initialize: invalid voting delay");
         require(proposalThreshold_ >= MIN_PROPOSAL_THRESHOLD && proposalThreshold_ <= MAX_PROPOSAL_THRESHOLD, "GovernorBravo::initialize: invalid proposal threshold");
+        require(treasury_ != address(0), "GovernorBravo::initialize: invalid treasury address");
+        require(chef_ != address(0), "GovernorBravo::initialize: invalid chef address");
 
         timelock = TimelockInterface(timelock_);
         cult = CultInterface(cult_);
@@ -90,8 +93,6 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
       * @return Proposal id of new proposal
       */
     function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
-        // Reject proposals before initiating as Governor
-        // require(initialProposalId != 0, "GovernorBravo::propose: Governor Bravo not active");
         // Allow addresses above proposal threshold and whitelisted addresses to propose
         require(Chef(chef).checkHighestStaker(0,msg.sender),"GovernorBravo::propose: only top staker");
         require(cult.getPastVotes(msg.sender, sub256(block.number, 1)) > proposalThreshold || isWhitelisted(msg.sender), "GovernorBravo::propose: proposer votes below proposal threshold");
@@ -333,7 +334,7 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
      */
     function _setInvesteeDetails(address _investee) external {
         require(msg.sender == admin, "GovernorBravo::_setInvesteeDetails: admin only");
-        require(_investee != address(0), "GovernorBravo::_setInvesteeDetails: Zero address");
+        require(_investee != address(0), "GovernorBravo::_setInvesteeDetails: zero address");
         investeeDetails[nextInvestee] = _investee;
         nextInvestee =add256(nextInvestee,1);
 
@@ -397,6 +398,8 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
      * @param account Account to set whitelistGuardian to (0x0 to remove whitelistGuardian)
      */
      function _setWhitelistGuardian(address account) external {
+        // Check address is not zero
+        require(account != address(0), "GovernorBravo:_setWhitelistGuardian: zero address");
         require(msg.sender == admin, "GovernorBravo::_setWhitelistGuardian: admin only");
         address oldGuardian = whitelistGuardian;
         whitelistGuardian = account;
@@ -415,6 +418,7 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
         proposalCount = GovernorAlpha(governorAlpha).proposalCount();
         initialProposalId = proposalCount;
         timelock.acceptAdmin();
+        emit GovernanceInitiated(governorAlpha);
     }
 
     /**
@@ -423,6 +427,8 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
       * @param newPendingAdmin New pending admin.
       */
     function _setPendingAdmin(address newPendingAdmin) external {
+        // Check address is not zero
+        require(newPendingAdmin != address(0), "GovernorBravo:_setPendingAdmin: zero address");
         // Check caller = admin
         require(msg.sender == admin, "GovernorBravo:_setPendingAdmin: admin only");
 
@@ -459,8 +465,8 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
     }
 
         /**
-      * @notice Accepts Admin for timlock of admin rights.
-      * @dev Admin function for transfering admin to accept role and update admin
+      * @notice Accepts Admin for timelock of admin rights.
+      * @dev Admin function for transferring admin to accept role and update admin
       */
     function _AcceptTimelockAdmin() external {
         timelock.acceptAdmin();

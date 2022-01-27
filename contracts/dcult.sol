@@ -53,7 +53,7 @@ contract Dcult is Initializable,UUPSUpgradeable,ERC20Upgradeable, OwnableUpgrade
     // The CULT TOKEN!
     IERC20Upgradeable public CULT;
     // admin address.
-    address public adminaddr;
+    address public adminAddress;
     // Bonus muliplier for early CULT makers.
     uint256 public constant BONUS_MULTIPLIER = 1;
 
@@ -65,7 +65,7 @@ contract Dcult is Initializable,UUPSUpgradeable,ERC20Upgradeable, OwnableUpgrade
     PoolInfo[] public poolInfo;
     // Info of each user that stakes LP tokens.
     mapping (uint256 => mapping (address => UserInfo)) public userInfo;
-    // Total allocation poitns. Must be the sum of all allocation points in all pools.
+    // Total allocation points. Must be the sum of all allocation points in all pools.
     uint256 public totalAllocPoint;
     // The block number when reward distribution start.
     uint256 public startBlock;
@@ -77,18 +77,20 @@ contract Dcult is Initializable,UUPSUpgradeable,ERC20Upgradeable, OwnableUpgrade
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
+    event AdminUpdated(address newAdmin);
 
     function initialize(        
         IERC20Upgradeable _cult,
-        address _adminaddr,
+        address _adminAddress,
         uint256 _startBlock,
         uint256 _topStakerNumber
         ) public initializer {
+        require(_adminAddress != address(0), "initialize: Zero address");
         OwnableUpgradeable.__Ownable_init();
         __ERC20_init_unchained("dcult", "dCULT");
         __Pausable_init_unchained();
         CULT = _cult;
-        adminaddr = _adminaddr;
+        adminAddress = _adminAddress;
         startBlock = _startBlock;
         topStakerNumber = _topStakerNumber;
     }
@@ -148,7 +150,7 @@ contract Dcult is Initializable,UUPSUpgradeable,ERC20Upgradeable, OwnableUpgrade
         return user.amount.mul(accCULTPerShare).div(1e12).sub(user.rewardCULTDebt);
     }
 
-    // Update reward vairables for all pools. Be careful of gas spending!
+    // Update reward variables for all pools. Be careful of gas spending!
     function massUpdatePools() public {
         uint256 length = poolInfo.length;
         for (uint256 pid = 0; pid < length; ++pid) {
@@ -186,13 +188,13 @@ contract Dcult is Initializable,UUPSUpgradeable,ERC20Upgradeable, OwnableUpgrade
     }
 
     /**
-    @notice Sorting the highes CULT staker in pool
+    @notice Sorting the highest CULT staker in pool
     @param _pid : pool id
     @param left : left
     @param right : right
     @dev Description :
-        It is used for sorting the highes CULT staker in pool. This function definition is marked
-        "internal" because this fuction is called only from inside the contract.
+        It is used for sorting the highest CULT staker in pool. This function definition is marked
+        "internal" because this function is called only from inside the contract.
     */
     function quickSort(
         uint256 _pid,
@@ -236,30 +238,30 @@ contract Dcult is Initializable,UUPSUpgradeable,ERC20Upgradeable, OwnableUpgrade
     ) private {
         uint256 i;
         // Getting the array of Highest staker as per pool id.
-        HighestAstaStaker[] storage higheststaker = highestStakerInPool[_pid];
+        HighestAstaStaker[] storage highestStaker = highestStakerInPool[_pid];
         //for loop to check if the staking address exist in array
-        for (i = 0; i < higheststaker.length; i++) {
-            if (higheststaker[i].addr == user) {
-                higheststaker[i].deposited = _amount;
+        for (i = 0; i < highestStaker.length; i++) {
+            if (highestStaker[i].addr == user) {
+                highestStaker[i].deposited = _amount;
                 // Called the function for sorting the array in ascending order.
-                quickSort(_pid, 0, higheststaker.length - 1);
+                quickSort(_pid, 0, highestStaker.length - 1);
                 return;
             }
         }
 
-        if (higheststaker.length < topStakerNumber) {
+        if (highestStaker.length < topStakerNumber) {
             // Here if length of highest staker is less than 100 than we just push the object into array.
-            higheststaker.push(HighestAstaStaker(_amount, user));
+            highestStaker.push(HighestAstaStaker(_amount, user));
         } else {
             // Otherwise we check the last staker amount in the array with new one.
-            if (higheststaker[0].deposited < _amount) {
+            if (highestStaker[0].deposited < _amount) {
                 // If the last staker deposited amount is less than new then we put the greater one in the array.
-                higheststaker[0].deposited = _amount;
-                higheststaker[0].addr = user;
+                highestStaker[0].deposited = _amount;
+                highestStaker[0].addr = user;
             }
         }
         // Called the function for sorting the array in ascending order.
-        quickSort(_pid, 0, higheststaker.length - 1);
+        quickSort(_pid, 0, highestStaker.length - 1);
     }
 
     /**
@@ -274,11 +276,11 @@ contract Dcult is Initializable,UUPSUpgradeable,ERC20Upgradeable, OwnableUpgrade
         view
         returns (bool)
     {
-        HighestAstaStaker[] storage higheststaker = highestStakerInPool[_pid];
+        HighestAstaStaker[] storage highestStaker = highestStakerInPool[_pid];
         uint256 i = 0;
         // Applied the loop to check the user in the highest staker list.
-        for (i; i < higheststaker.length; i++) {
-            if (higheststaker[i].addr == user) {
+        for (i; i < highestStaker.length; i++) {
+            if (highestStaker[i].addr == user) {
                 // If user is exists in the list then we return true otherwise false.
                 return true;
             }
@@ -334,7 +336,7 @@ contract Dcult is Initializable,UUPSUpgradeable,ERC20Upgradeable, OwnableUpgrade
                 // Deleting the staker from the array.
                 delete highestStaker[i];
                 if(_amount > 0) {
-                    // If amount is greater than 0 than we need to add this again in the hisghest staker list.
+                    // If amount is greater than 0 than we need to add this again in the highest staker list.
                     addHighestStakedUser(_pid, _amount, user);
                 }
                 return;
@@ -358,22 +360,26 @@ contract Dcult is Initializable,UUPSUpgradeable,ERC20Upgradeable, OwnableUpgrade
     
     // Safe CULT transfer function to admin.
     function accessCULTTokens(uint256 _pid, address _to, uint256 _amount) public {
-        require(msg.sender == adminaddr, "sender must be admin address");
+        require(msg.sender == adminAddress, "sender must be admin address");
         require(totalCULTStaked.sub(totalCultUsedForPurchase) >= _amount, "Amount must be less than staked CULT amount");
         PoolInfo storage pool = poolInfo[_pid];
         uint256 CultBal = pool.lpToken.balanceOf(address(this));
         if (_amount > CultBal) {
             pool.lpToken.transfer(_to, CultBal);
             totalCultUsedForPurchase = totalCultUsedForPurchase.add(CultBal);
+            emit EmergencyWithdraw(_to, _pid, CultBal);
         } else {
             pool.lpToken.transfer(_to, _amount);
             totalCultUsedForPurchase = totalCultUsedForPurchase.add(_amount);
+            emit EmergencyWithdraw(_to, _pid, _amount);
         }
     }
     // Update admin address by the previous admin.
-    function admin(address _adminaddr) public {
-        require(msg.sender == adminaddr, "admin: wut?");
-        adminaddr = _adminaddr;
+    function admin(address _adminAddress) public {
+        require(_adminAddress != address(0), "admin: Zero address");
+        require(msg.sender == adminAddress, "admin: wut?");
+        adminAddress = _adminAddress;
+        emit AdminUpdated(_adminAddress);
     }
 
     function _beforeTokenTransfer(
