@@ -16,7 +16,7 @@ async function main() {
 
   const cultToken = await upgrades.deployProxy(Token, [
     deployer.address,
-    "6666666666666666666666666666666",
+    "6666666666666000000000000000000",
   ]);
   await cultToken.deployed();
   console.log("Cult Token ", cultToken.address);
