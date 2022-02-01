@@ -106,7 +106,7 @@ describe("GovernorBravo_Propose", function () {
       gas: 8000000,
     });
     await this.gov._AcceptTimelockAdmin({ from: ownerAddress, gas: 8000000 });
-    await this.CULT.delegate(ownerAddress, { from: ownerAddress });
+    await this.CULT.delegate(userAddress1, { from: ownerAddress });
 
     targets = [ownerAddress];
     values = ["0"];
@@ -301,7 +301,7 @@ describe("GovernorBravo_Propose", function () {
   describe("Caste Vote", function () {
     it("Caste Vote(True)", async function () {
       await time.advanceBlock();
-      await this.gov.castVote(1, 1, { from: ownerAddress });
+      await this.gov.castVote(1, 1, { from: userAddress1 });
       const prop = await this.gov.proposals(1);
       expect(prop.forVotes).to.be.bignumber.equal(
         new BN("6666666666666666666666666666566")
@@ -310,7 +310,7 @@ describe("GovernorBravo_Propose", function () {
 
     it("Caste Vote(False)", async function () {
       await time.advanceBlock();
-      await this.gov.castVote(1, 0, { from: ownerAddress });
+      await this.gov.castVote(1, 0, { from: userAddress1 });
       const prop = await this.gov.proposals(1);
       expect(prop.againstVotes).to.be.bignumber.equal(
         new BN("6666666666666666666666666666566")
@@ -319,9 +319,9 @@ describe("GovernorBravo_Propose", function () {
 
     it("Caste Vote(Try to vote again)", async function () {
       await time.advanceBlock();
-      await this.gov.castVote(1, 0, { from: ownerAddress });
+      await this.gov.castVote(1, 0, { from: userAddress1 });
       await expectRevert(
-        this.gov.castVote(1, 1, { from: ownerAddress }),
+        this.gov.castVote(1, 1, { from: userAddress1 }),
         "GovernorBravo::castVoteInternal: voter already voted"
       );
     });
