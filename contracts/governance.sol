@@ -19,9 +19,6 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
     /// @notice Treasury contract address
     address public treasury;
 
-    /// @notice chef contract address
-    address public chef;
-
     /// @notice The name of this contract
     string public constant name = "Cult Governor Bravo";
 
@@ -44,7 +41,7 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
     uint public constant MAX_VOTING_DELAY = 40320; // About 1 week
 
     /// @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
-    uint public constant quorumVotes = 400000e18; // 400,000
+    uint public constant quorumVotes = 1000000000e18; // 1 Billion
 
     /// @notice The maximum number of actions that can be included in a proposal
     uint public constant proposalMaxOperations = 10; // 10 actions
@@ -58,29 +55,27 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
     /**
       * @notice Used to initialize the contract during delegator constructor
       * @param timelock_ The address of the Timelock
-      * @param cult_ The address of the CULT token
+      * @param dCult_ The address of the dCULT token
       * @param votingPeriod_ The initial voting period
       * @param votingDelay_ The initial voting delay
       * @param proposalThreshold_ The initial proposal threshold
       */
-    function initialize(address timelock_, address cult_, uint votingPeriod_, uint votingDelay_, uint proposalThreshold_, address treasury_, address chef_) public initializer{
+    function initialize(address timelock_, address dCult_, uint votingPeriod_, uint votingDelay_, uint proposalThreshold_, address treasury_) public initializer{
         require(address(timelock) == address(0), "GovernorBravo::initialize: can only initialize once");
         require(timelock_ != address(0), "GovernorBravo::initialize: invalid timelock address");
-        require(cult_ != address(0), "GovernorBravo::initialize: invalid cult address");
+        require(dCult_ != address(0), "GovernorBravo::initialize: invalid dCult address");
         require(votingPeriod_ >= MIN_VOTING_PERIOD && votingPeriod_ <= MAX_VOTING_PERIOD, "GovernorBravo::initialize: invalid voting period");
         require(votingDelay_ >= MIN_VOTING_DELAY && votingDelay_ <= MAX_VOTING_DELAY, "GovernorBravo::initialize: invalid voting delay");
         require(proposalThreshold_ >= MIN_PROPOSAL_THRESHOLD && proposalThreshold_ <= MAX_PROPOSAL_THRESHOLD, "GovernorBravo::initialize: invalid proposal threshold");
         require(treasury_ != address(0), "GovernorBravo::initialize: invalid treasury address");
-        require(chef_ != address(0), "GovernorBravo::initialize: invalid chef address");
 
         timelock = TimelockInterface(timelock_);
-        cult = CultInterface(cult_);
+        dCult = dCultInterface(dCult_);
         votingPeriod = votingPeriod_;
         votingDelay = votingDelay_;
         proposalThreshold = proposalThreshold_;
         admin = timelock_;
         treasury = treasury_;
-        chef = chef_;
     }
 
     /**
@@ -94,7 +89,7 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
       */
     function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
         // Allow addresses above proposal threshold and whitelisted addresses to propose
-        require(Chef(chef).checkHighestStaker(0,msg.sender),"GovernorBravo::propose: only top staker");
+        require(dCult.checkHighestStaker(0,msg.sender),"GovernorBravo::propose: only top staker");
         require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "GovernorBravo::propose: proposal function information arity mismatch");
         require(targets.length != 0, "GovernorBravo::propose: must provide actions");
         require(targets.length <= proposalMaxOperations, "GovernorBravo::propose: too many actions");
@@ -274,13 +269,13 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
       * @return The number of votes cast
       */
     function castVoteInternal(address voter, uint proposalId, uint8 support) internal returns (uint256) {
-        require(!Chef(chef).checkHighestStaker(0,msg.sender),"GovernorBravo::castVoteInternal: Top staker cannot vote");
+        require(!dCult.checkHighestStaker(0,msg.sender),"GovernorBravo::castVoteInternal: Top staker cannot vote");
         require(state(proposalId) == ProposalState.Active, "GovernorBravo::castVoteInternal: voting is closed");
         require(support <= 2, "GovernorBravo::castVoteInternal: invalid vote type");
         Proposal storage proposal = proposals[proposalId];
         Receipt storage receipt = proposal.receipts[voter];
         require(receipt.hasVoted == false, "GovernorBravo::castVoteInternal: voter already voted");
-        uint256 votes = cult.getPastVotes(voter, proposal.startBlock);
+        uint256 votes = dCult.getPastVotes(voter, proposal.startBlock);
 
         if (support == 0) {
             proposal.againstVotes = add256(proposal.againstVotes, votes);

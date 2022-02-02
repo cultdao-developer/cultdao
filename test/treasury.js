@@ -45,7 +45,6 @@ describe("Treasury contract", function () {
       1,
       "60000000000000000000000",
       treasury.address,
-      addr2.address,
     ]);
     await governance.deployed();
     await cultToken.setTreasuryAddress(treasury.address);

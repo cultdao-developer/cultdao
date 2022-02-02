@@ -97,7 +97,7 @@ contract GovernorBravoDelegateStorageV1 is GovernorBravoDelegatorStorage {
     TimelockInterface public timelock;
 
     /// @notice The address of the cult governance token
-    CultInterface public cult;
+    dCultInterface public dCult;
 
     /// @notice The official record of all proposals ever proposed
     mapping (uint => Proposal) public proposals;
@@ -196,16 +196,14 @@ interface TimelockInterface {
     function executeTransaction(address target, uint value, string calldata signature, bytes calldata data, uint eta) external payable returns (bytes memory);
 }
 
-interface CultInterface {
+interface dCultInterface {
+    /// @notice Get the past vote of the users
     function getPastVotes(address account, uint blockNumber) external view returns (uint256);
+    /// @notice Top staker
+    function checkHighestStaker(uint256 _pid, address user) external returns (bool);
 }
 
 interface GovernorAlpha {
     /// @notice The total number of proposals
     function proposalCount() external returns (uint);
-}
-
-interface Chef {
-    /// @notice Top staker
-    function checkHighestStaker(uint256 _pid, address user) external returns (bool);
 }

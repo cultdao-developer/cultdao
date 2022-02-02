@@ -3,13 +3,16 @@ pragma solidity 0.8.2;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 
 
-contract Dcult is Initializable,UUPSUpgradeable,ERC20Upgradeable, OwnableUpgradeable, PausableUpgradeable {
+contract Dcult is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitUpgradeable, ERC20VotesUpgradeable, OwnableUpgradeable, PausableUpgradeable {
     using SafeMathUpgradeable for uint256;
     using SafeERC20Upgradeable for IERC20Upgradeable;
     IERC20Upgradeable public cult;
@@ -89,6 +92,8 @@ contract Dcult is Initializable,UUPSUpgradeable,ERC20Upgradeable, OwnableUpgrade
         OwnableUpgradeable.__Ownable_init();
         __ERC20_init_unchained("dCULT", "dCULT");
         __Pausable_init_unchained();
+        ERC20PermitUpgradeable.__ERC20Permit_init("dCULT");
+        ERC20VotesUpgradeable.__ERC20Votes_init_unchained();
         CULT = _cult;
         adminAddress = _adminAddress;
         startBlock = _startBlock;
@@ -272,7 +277,7 @@ contract Dcult is Initializable,UUPSUpgradeable,ERC20Upgradeable, OwnableUpgrade
     DAO governance will be performed by the top 50 wallets with the highest amount of staked CULT tokens. 
     */
     function checkHighestStaker(uint256 _pid, address user)
-        external
+        public
         view
         returns (bool)
     {
@@ -382,6 +387,27 @@ contract Dcult is Initializable,UUPSUpgradeable,ERC20Upgradeable, OwnableUpgrade
         emit AdminUpdated(_adminAddress);
     }
 
+    function _mint(address to, uint256 amount)
+        internal
+        override(ERC20Upgradeable, ERC20VotesUpgradeable)
+    {
+        super._mint(to, amount);
+    }
+
+    function _burn(address account, uint256 amount)
+        internal
+        override(ERC20Upgradeable, ERC20VotesUpgradeable)
+    {
+        super._burn(account, amount);
+    }
+
+    function _afterTokenTransfer(address from, address to, uint256 amount)
+        internal
+        override(ERC20Upgradeable, ERC20VotesUpgradeable)
+    {
+        ERC20VotesUpgradeable._afterTokenTransfer(from, to, amount);
+    }
+
     function _beforeTokenTransfer(
         address from,
         address to,
@@ -393,6 +419,11 @@ contract Dcult is Initializable,UUPSUpgradeable,ERC20Upgradeable, OwnableUpgrade
         }else{
             revert("Non transferable token");
         }
+    }
+
+    function _delegate(address delegator, address delegatee) internal virtual override {
+        require(!checkHighestStaker(0, delegator),"Top staker cannot delegate");
+        super._delegate(delegator,delegatee);
     }
 
     function _authorizeUpgrade(address) internal view override {

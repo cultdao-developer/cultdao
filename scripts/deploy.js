@@ -25,7 +25,7 @@ async function main() {
     cultToken.address,
     deployer.address,
     100,
-    2,
+    50,
   ]);
 
   await dCultToken.deployed();
@@ -41,19 +41,18 @@ async function main() {
 
   const timelock = await upgrades.deployProxy(timeLockContract, [
     deployer.address,
-    120,
+    7200,
   ]);
   await timelock.deployed();
   console.log("Timelock Token ", timelock.address);
 
   const governance = await upgrades.deployProxy(governanceToken, [
-    deployer.address,
-    cultToken.address,
-    120,
+    timelock.address,
+    dCultToken.address,
+    32500,
     1,
     "60000000000000000000000",
     treasury.address,
-    dCultToken.address,
   ]);
   console.log("Governance Token ", governance.address);
 }
