@@ -55,6 +55,51 @@ describe("dcult contract", function () {
     });
   });
 
+  describe("Delegate votes", function () {
+    beforeEach(async function () {
+      await dCultToken.connect(owner).add(100, cultToken.address, true);
+      await cultToken.connect(owner).transfer(addr1.address, 1000);
+      await cultToken.connect(owner).transfer(addr2.address, 1000);
+      await cultToken.connect(owner).approve(dCultToken.address, 1000);
+      await cultToken.connect(addr1).approve(dCultToken.address, 1000);
+      await cultToken.connect(addr2).approve(dCultToken.address, 1000);
+      await dCultToken.connect(owner).deposit(0, 800);
+      await dCultToken.connect(addr1).deposit(0, 900);
+      await dCultToken.connect(addr2).deposit(0, 1000);
+    });
+    it("User should have zero votes initially", async function () {
+      expect(await dCultToken.getVotes(owner.address)).to.equal(0);
+    });
+    it("User should have votes after delegate", async function () {
+      await dCultToken.connect(owner).delegate(owner.address);
+      expect(await dCultToken.getVotes(owner.address)).to.equal(800);
+    });
+    it("User can delegate votes to other users ", async function () {
+      await dCultToken.connect(owner).delegate(addr1.address);
+      expect(await dCultToken.getVotes(addr1.address)).to.equal(800);
+    });
+    it("Delegated user cannot delegate votes to other users ", async function () {
+      await dCultToken.connect(owner).delegate(addrs[0].address);
+      await dCultToken.connect(addrs[0]).delegate(addr2.address);
+      expect(await dCultToken.getVotes(addr2.address)).to.equal(0);
+    });
+    it("User votes will reduce on withdraw ", async function () {
+      await dCultToken.connect(owner).delegate(addr1.address);
+      await dCultToken.connect(owner).withdraw(0, 100);
+      expect(await dCultToken.getVotes(addr1.address)).to.equal(700);
+    });
+    it("Delegated user votes will reduce on withdraw ", async function () {
+      await dCultToken.connect(owner).delegate(addr1.address);
+      await dCultToken.connect(owner).withdraw(0, 100);
+      expect(await dCultToken.getVotes(addr1.address)).to.equal(700);
+    });
+    it("Should revert if top staker tries to delegate", async function () {
+      await expect(
+        dCultToken.connect(addr1).delegate(addr1.address)
+      ).to.be.revertedWith("Top staker cannot delegate");
+    });
+  });
+
   describe("Check dCult ERC20 token", function () {
     beforeEach(async function () {
       await dCultToken.connect(owner).add(100, cultToken.address, true);

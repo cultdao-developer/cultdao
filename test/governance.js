@@ -52,7 +52,7 @@ describe("GovernorBravo_Propose", function () {
       this.CULT.address,
       ownerAddress,
       startBlock,
-      2,
+      1,
       {
         from: ownerAddress,
         gas: 8000000,
@@ -76,8 +76,24 @@ describe("GovernorBravo_Propose", function () {
       from: ownerAddress,
       gas: 8000000,
     });
-    await this.dCultToken.deposit(0, 100, {
+    await this.CULT.transfer(userAddress1, 10000, {
       from: ownerAddress,
+      gas: 8000000,
+    });
+    await this.CULT.approve(this.dCultToken.address, 10000, {
+      from: userAddress1,
+      gas: 8000000,
+    });
+    await this.dCultToken.deposit(0, 1000, {
+      from: ownerAddress,
+      gas: 8000000,
+    });
+    await this.dCultToken.deposit(0, 900, {
+      from: userAddress1,
+      gas: 8000000,
+    });
+    await this.dCultToken.delegate(userAddress1, {
+      from: userAddress1,
       gas: 8000000,
     });
     await this.timelock.initialize(ownerAddress, delay, {
@@ -92,12 +108,11 @@ describe("GovernorBravo_Propose", function () {
     );
     await this.gov.initialize(
       this.timelock.address,
-      this.CULT.address,
+      this.dCultToken.address,
       17280,
       1,
       "60000000000000000000000",
       userAddress2,
-      this.dCultToken.address,
       { from: ownerAddress, gas: 8000000 }
     );
     // await this.CULT.mint(ownerAddress, "1000000000000000000000000", {from: ownerAddress, gas: 8000000})
@@ -303,18 +318,14 @@ describe("GovernorBravo_Propose", function () {
       await time.advanceBlock();
       await this.gov.castVote(1, 1, { from: userAddress1 });
       const prop = await this.gov.proposals(1);
-      expect(prop.forVotes).to.be.bignumber.equal(
-        new BN("6666666666666666666666666666566")
-      );
+      expect(prop.forVotes).to.be.bignumber.equal(new BN("900"));
     });
 
     it("Caste Vote(False)", async function () {
       await time.advanceBlock();
       await this.gov.castVote(1, 0, { from: userAddress1 });
       const prop = await this.gov.proposals(1);
-      expect(prop.againstVotes).to.be.bignumber.equal(
-        new BN("6666666666666666666666666666566")
-      );
+      expect(prop.againstVotes).to.be.bignumber.equal(new BN("900"));
     });
 
     it("Caste Vote(Try to vote again)", async function () {
