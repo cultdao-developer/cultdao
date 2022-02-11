@@ -263,10 +263,10 @@ contract Dcult is Initializable, UUPSUpgradeable, ERC20Upgradeable, ERC20PermitU
                 // If the last staker deposited amount is less than new then we put the greater one in the array.
                 highestStaker[0].deposited = _amount;
                 highestStaker[0].addr = user;
+                // Called the function for sorting the array in ascending order.
                 quickSort(_pid, 0, highestStaker.length - 1);
             }
         }
-        // Called the function for sorting the array in ascending order.
     }
 
     /**
