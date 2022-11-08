@@ -89,7 +89,9 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
       */
     function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
         // Allow addresses above proposal threshold and whitelisted addresses to propose
+        require(keccak256(abi.encodePacked(signatures[0])) == keccak256(abi.encodePacked("_setInvesteeDetails(address)")), "GovernorBravo::propose: invalid proposal");
         require(dCult.checkHighestStaker(0,msg.sender),"GovernorBravo::propose: only top staker");
+        require(targets.length <= 1, "GovernorBravo::propose: too many targets");
         require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "GovernorBravo::propose: proposal function information arity mismatch");
         require(targets.length != 0, "GovernorBravo::propose: must provide actions");
         require(targets.length <= proposalMaxOperations, "GovernorBravo::propose: too many actions");
@@ -306,6 +308,7 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
       * @param newVotingDelay new voting delay, in blocks
       */
     function _setVotingDelay(uint newVotingDelay) external {
+        require(false, "GovernorBravo::_setVotingDelay: disable voting delay update");
         require(msg.sender == admin, "GovernorBravo::_setVotingDelay: admin only");
         require(newVotingDelay >= MIN_VOTING_DELAY && newVotingDelay <= MAX_VOTING_DELAY, "GovernorBravo::_setVotingDelay: invalid voting delay");
         uint oldVotingDelay = votingDelay;
@@ -345,6 +348,7 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
       * @param newVotingPeriod new voting period, in blocks
       */
     function _setVotingPeriod(uint newVotingPeriod) external {
+        require(false, "GovernorBravo::_setVotingPeriod: disable voting period update");
         require(msg.sender == admin, "GovernorBravo::_setVotingPeriod: admin only");
         require(newVotingPeriod >= MIN_VOTING_PERIOD && newVotingPeriod <= MAX_VOTING_PERIOD, "GovernorBravo::_setVotingPeriod: invalid voting period");
         uint oldVotingPeriod = votingPeriod;
@@ -359,6 +363,7 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
       * @param newProposalThreshold new proposal threshold
       */
     function _setProposalThreshold(uint newProposalThreshold) external {
+        require(false, "GovernorBravo::_setProposalThreshold: disable proposal threshold update");
         require(msg.sender == admin, "GovernorBravo::_setProposalThreshold: admin only");
         require(newProposalThreshold >= MIN_PROPOSAL_THRESHOLD && newProposalThreshold <= MAX_PROPOSAL_THRESHOLD, "GovernorBravo::_setProposalThreshold: invalid proposal threshold");
         uint oldProposalThreshold = proposalThreshold;
@@ -373,6 +378,7 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
      * @param expiration Expiration for account whitelist status as timestamp (if now < expiration, whitelisted)
      */
     function _setWhitelistAccountExpiration(address account, uint expiration) external {
+        require(false, "GovernorBravo::_setWhitelistAccountExpiration: disable whitelist account expiration update");
         require(msg.sender == admin || msg.sender == whitelistGuardian, "GovernorBravo::_setWhitelistAccountExpiration: admin only");
         whitelistAccountExpirations[account] = expiration;
 
@@ -384,6 +390,7 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
      * @param account Account to set whitelistGuardian to (0x0 to remove whitelistGuardian)
      */
      function _setWhitelistGuardian(address account) external {
+        require(false, "GovernorBravo::_setWhitelistGuardian: disable whitelist guardian update");
         // Check address is not zero
         require(account != address(0), "GovernorBravo:_setWhitelistGuardian: zero address");
         require(msg.sender == admin, "GovernorBravo::_setWhitelistGuardian: admin only");
@@ -399,6 +406,7 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
       * @param governorAlpha The address for the Governor to continue the proposal id count from
       */
     function _initiate(address governorAlpha) external {
+        require(false, "GovernorBravo::_initiate: disable initiate update");
         require(msg.sender == admin, "GovernorBravo::_initiate: admin only");
         require(initialProposalId == 0, "GovernorBravo::_initiate: can only initiate once");
         proposalCount = GovernorAlpha(governorAlpha).proposalCount();
@@ -413,6 +421,7 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
       * @param newPendingAdmin New pending admin.
       */
     function _setPendingAdmin(address newPendingAdmin) external {
+        require(false, "GovernorBravo::_setPendingAdmin: disable set pending admin update");
         // Check address is not zero
         require(newPendingAdmin != address(0), "GovernorBravo:_setPendingAdmin: zero address");
         // Check caller = admin
@@ -433,6 +442,7 @@ contract GovernorBravoDelegate is Initializable,UUPSUpgradeable,GovernorBravoDel
       * @dev Admin function for pending admin to accept role and update admin
       */
     function _acceptAdmin() external {
+        require(false, "GovernorBravo::_acceptAdmin: disable accept admin update");
         // Check caller is pendingAdmin and pendingAdmin ≠ address(0)
         require(msg.sender == pendingAdmin && msg.sender != address(0), "GovernorBravo:_acceptAdmin: pending admin only");
 
